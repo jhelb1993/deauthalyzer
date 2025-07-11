@@ -19,7 +19,7 @@ print(colored("     ███████▄.▲.▲.▲.▲▲▲▲▲▲", 'g
 print(colored("     ██████████████████▀▀▀    (v1)\n", 'green'))
 print("                 A tool to monitor and log Wifi-Deauthentication attacks")
 print("                                       ~By: Pranjal Goel (z0m31en7) ")
-
+print("                                       ~Modded by Jan Helbling (jhelb1993)")
 
 def check_root_privileges():
     if not subprocess.check_output(['id', '-u']).decode().strip() == '0':
@@ -35,12 +35,11 @@ def get_wifi_interfaces():
 
     return wifi_interfaces
 
-def enable_monitor_mode(interface, stealth_mode):
-    subprocess.run(['sudo', 'airmon-ng', 'check', 'kill'])
-    command = ['sudo', 'airmon-ng', 'start', interface]
-    if stealth_mode:
-        command.append('1')
+def enable_monitor_mode(interface):
+    command = ['ifconfig', interface, 'down']
     subprocess.run(command)
+    subprocess.run(['iwconfig', interface, 'mode','monitor'])
+    subprocess.run(['ifconfig', interface, 'up'])
 
 def extract_mac_address(line):
     mac_index = line.find('SA:') + 4
@@ -54,11 +53,10 @@ def animate_loading():
             sys.stdout.flush()
             time.sleep(0.1)
 
-def detect_deauth_attack(interface, stealth_mode):
-    enable_monitor_mode(interface, stealth_mode)
-    monitor_interface = f'{interface}mon'
-    print(f'{colored("[+] Monitor mode enabled for interface", "green")} {colored(monitor_interface, "cyan")}.')
-    command = ['tshark', '-i', monitor_interface, '-Y', 'wlan.fc.type_subtype == 0x0c']
+def detect_deauth_attack(interface):
+    enable_monitor_mode(interface)
+    print(f'{colored("[+] Monitor mode enabled for interface", "green")} {colored(interface, "cyan")}.')
+    command = ['tshark', '-i', interface, '-Y', 'wlan.fc.type_subtype == 0x0c']
     process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
 
     def signal_handler(sig, frame):
@@ -97,7 +95,9 @@ def detect_deauth_attack(interface, stealth_mode):
         process.terminate()
 
 def disable_monitor_mode(interface):
-    subprocess.run(['sudo', 'airmon-ng', 'stop', interface])
+    subprocess.run(['ifconfig', interface, 'down'])
+    subprocess.run(['iwconfig', interface, 'mode', 'managed'])
+    subprocess.run(['ifconfig', interface, 'up'])
 
 def write_attack_details(details):
     now = datetime.datetime.now()
@@ -135,4 +135,4 @@ except ValueError:
 
 selected_interface = wifi_interfaces[interface_num - 1]
 
-detect_deauth_attack(selected_interface, args.stealth)
+detect_deauth_attack(selected_interface)
