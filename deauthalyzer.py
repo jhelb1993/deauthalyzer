@@ -54,7 +54,7 @@ def animate_loading():
             sys.stdout.flush()
             time.sleep(0.1)
 
-def detect_deauth_attack(interface):
+def detect_deauth_attack(interface, notify):
     enable_monitor_mode(interface)
     print(f'{colored("[+] Monitor mode enabled for interface", "green")} {colored(interface, "cyan")}.')
     command = ['tshark', '-i', interface, '-Y', 'wlan.fc.type_subtype == 0x0c']
@@ -81,6 +81,8 @@ def detect_deauth_attack(interface):
                 print(colored(line, "cyan"))
                 mac_address = extract_mac_address(line)
                 print(f'{colored("Source MAC address:", "green")} {colored(mac_address, "yellow")}')
+                if notify:
+                    subprocess.run(['notify-send','Deauthentication attack','from MAC: {1}'.format(mac_address), '-u', 'critical', '-t', '3000' ,'-c', 'Security']),
                 attack_details = [line, f'Source MAC address: {mac_address}']
                 write_attack_details(attack_details)
                 for _ in range(4):
@@ -109,6 +111,7 @@ def write_attack_details(details):
 
 parser = argparse.ArgumentParser(description='Detect WiFi deauthentication attacks.')
 parser.add_argument('-i', '--interface', dest='iface', help='WiFi Inteface')
+parser.add_argument('-n', '--notify', action='store_true', dest='notify', help='notify-send on deauth.')
 args = parser.parse_args()
 
 if not args.iface:
@@ -117,4 +120,4 @@ if not args.iface:
 # Check root privileges
 check_root_privileges()
 
-detect_deauth_attack(args.iface)
+detect_deauth_attack(args.iface, args.notify)
