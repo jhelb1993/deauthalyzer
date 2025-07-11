@@ -47,7 +47,7 @@ chmod +x ./install.sh && ./install.sh
 ```
 
 ```
-sudo python deauthalyzer.py
+sudo python deauthalyzer.py -i wlan0 -n
 ```
 
 <br><h2>🎛 Usage:</h2>
