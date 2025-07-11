@@ -3,6 +3,7 @@ import psutil
 import argparse
 import signal
 import sys
+import os
 import time
 import datetime
 import threading
@@ -22,7 +23,7 @@ print("                                       ~By: Pranjal Goel (z0m31en7) ")
 print("                                       ~Modded by Jan Helbling (jhelb1993)")
 
 def check_root_privileges():
-    if not subprocess.check_output(['id', '-u']).decode().strip() == '0':
+    if os.getuid() != 0:
         print(colored('\n[x] Need higher privileges, run as root!!!', 'red'))
         sys.exit()
 
