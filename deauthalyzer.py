@@ -107,32 +107,13 @@ def write_attack_details(details):
             file.write(detail + '\n')
 
 parser = argparse.ArgumentParser(description='Detect WiFi deauthentication attacks.')
-parser.add_argument('-m', '--mode', dest='stealth', action='store_true', help='Enable stealth mode')
+parser.add_argument('-i', '--interface', dest='iface', help='WiFi Inteface')
 args = parser.parse_args()
 
+if not args.iface:
+    print("Use -i or --interface [your_interface]")
+    sys.exit(1)
 # Check root privileges
 check_root_privileges()
 
-wifi_interfaces = get_wifi_interfaces()
-
-if not wifi_interfaces:
-    print(colored('\n[x] No wireless interfaces found.', 'red'))
-    sys.exit()
-
-print(colored('[!] Available WiFi interfaces:', 'green'))
-for i, interface in enumerate(wifi_interfaces, 1):
-    print(f'{i}. {interface}')
-
-interface_num = input('Enter the number corresponding to the interface to use for monitor mode: ')
-
-try:
-    interface_num = int(interface_num)
-    if interface_num < 1 or interface_num > len(wifi_interfaces):
-        raise ValueError
-except ValueError:
-    print(colored('Invalid input. Exiting...', 'red'))
-    sys.exit()
-
-selected_interface = wifi_interfaces[interface_num - 1]
-
-detect_deauth_attack(selected_interface)
+detect_deauth_attack(args.iface)
